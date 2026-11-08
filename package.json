@@ -1,24 +1,23 @@
 {
-  "name": "publish-tag",
-  "version": "1.0.0",
-  "description": "Extracts semver version and publish tag from github tag or package.json",
+  "name": "resolve-release-metadata",
+  "version": "2.0.0",
+  "description": "A GitHub Action that resolves release metadata from either a raw version string or a supported package manifest.",
   "type": "module",
-  "main": "index.js",
   "scripts": {
-    "test": "npm run build && npx vitest run --reporter verbose --coverage --silent false",
-    "format": "prettier --write **/*.js",
-    "format:check": "prettier --check **/*.js",
-    "lint": "eslint src/**/*.js",
-    "build": "node build.js"
+    "test": "echo npx vitest run --reporter verbose --coverage",
+    "format": "prettier --write **/*.{js,ts,json}",
+    "format:check": "prettier --check **/*.{js,ts,json}",
+    "lint": "eslint src/**/*.ts",
+    "typecheck:workspace": "tsc -p tsconfig.workspace.json",
+    "build": "npx tsup",
+    "build:public": "npx tsup --config tsup.public.config.ts",
+    "docs": "npx typedoc",
+    "prepare:artifact": "tsx workspace/release/prepareArtifact.ts",
+    "prepare": "echo is-ci || husky"
   },
-  "keywords": [
-    "parse-npm-tag",
-    "publish-tag",
-    "tag",
-    "parse"
-  ],
+  "keywords": [],
   "author": "Yuki_akai",
-  "homepage": "https://github.com/yukiakai212/publish-tag",
+  "homepage": "https://github.com/yukiakai212/resolve-release-metadata",
   "funding": "https://github.com/sponsors/yukiakai212",
   "engines": {
     "node": ">= 16"
@@ -31,26 +30,35 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yukiakai212/publish-tag.git"
+    "url": "git+https://github.com/yukiakai212/resolve-release-metadata.git"
   },
   "bugs": {
-    "url": "https://github.com/yukiakai212/publish-tag/issues"
+    "url": "https://github.com/yukiakai212/resolve-release-metadata/issues"
   },
-  "license": "ISC",
-  "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.1",
-    "semver": "^7.7.2"
-  },
+  "license": "MIT",
   "devDependencies": {
-    "@changesets/cli": "^2.29.5",
-    "@vitest/coverage-v8": "^3.2.4",
-    "esbuild": "^0.25.8",
-    "eslint": "^9.32.0",
-    "eslint-plugin-n": "^17.21.3",
+    "@changesets/cli": "^2.29.8",
+    "@eslint/js": "^9.30.1",
+    "@types/node": "^24.0.10",
+    "@types/semver": "^7.8.0",
+    "@vitest/coverage-v8": "^4.0.15",
+    "@yukiakai/artifact": "^1.0.1",
+    "dotenv": "^17.0.1",
+    "eslint": "^9.30.0",
+    "husky": "^9.1.7",
+    "is-ci": "^4.1.0",
     "prettier": "^3.6.2",
-    "tsup": "^8.5.0",
-    "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "tsup": "^8.5.1",
+    "tsx": "^4.20.3",
+    "type-fest": "^5.8.0",
+    "typedoc": "^0.28.9",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.35.1",
+    "vitest": "^4.0.15"
+  },
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "smol-toml": "^1.9.1",
+    "zod": "^4.6.7"
   }
 }

@@ -1,116 +1,87 @@
-# publish-tag
+# Resolve Release Metadata
 
-[![Build Status][github-build-url]][github-repo-url]
-[![codecov][codecov-image]][codecov-url]
+A GitHub Action that resolves release metadata from either a raw version string or a supported package manifest.
 
-A GitHub Action that parses a Git tag (e.g. `v1.2.3-beta.1`) or from package.json into a proper NPM publish tag (e.g. `beta`) and semantic version info.
-
-Useful in CI/CD pipelines that publish to NPM with support for `latest`, `beta`, `alpha`, or `rc` tags automatically based on Git tag names or package.json.
-
----
-
-## Features
-
-* Parses GitHub semver tag like `v1.2.3-beta.1+10.1`
-* Outputs `tag` (e.g. `beta`, `latest`, etc.)
-* Also returns `version`, `major`, `minor`, `patch`, `build`, `full`
-* Customizable prefix (`v`, `release-`, etc.)
-* Supports reading version directly from any `package.json` file
-* Fails on invalid or non-semver tags
-
----
-
-## Outputs
-
-| Output    | Description                                          |
-| --------- | ---------------------------------------------------- |
-| `tag`     | Tag for `npm publish` (`latest`, `beta`, `rc`, etc.) |
-| `version` | Full semantic version parsed                         |
-| `major`   | Major version number                                 |
-| `minor`   | Minor version number                                 |
-| `patch`   | Patch version number                                 |
-| `build`   | Build version number                                 |
-| `full`    | Full semantic version and build                      |
-
----
+After an optional prefix is removed, the resolved value must be a valid semantic version. The action exposes the normalized version and its parsed components for use by later release, publish, or deployment steps.
 
 ## Inputs
 
-| Input    | Description                                                                                      | Default |
-| -------- | -------------------------------------------------------------------------------------------------| ------- |
-| `prefix` | Optional prefix to strip from Git tag (e.g. `v`, `release-`)                                     | `v`     |
-| `source` | Optional path to a `package.json` file to read version from. If set, prefix are ignored.         | -       |
+| Input | Required | Default | Description |
+| --- | --- | --- | --- |
+| `raw-version` | No | — | Version string to resolve directly. When non-empty, it takes precedence over `package-type` and `package-directory`. |
+| `package-type` | In package mode | — | Manifest type to inspect when `raw-version` is blank. Supported values: `node` and `cargo`. |
+| `package-directory` | No | `.` | Directory containing the selected package manifest. Used only when `raw-version` is blank. |
+| `prefix-to-remove` | No | — | Exact prefix to remove once from the resolved version, such as `v`. If configured, the resolved version must begin with this prefix. |
 
----
+## Outputs
 
-## Example Usage
+| Output | Description |
+| --- | --- |
+| `release-tag` | Git release tag derived from the normalized version. |
+| `full` | Full semantic version, including build metadata when present. |
+| `version` | Semantic version without build metadata, for example `1.2.3-beta.1`. |
+| `major` | Major version number. |
+| `minor` | Minor version number. |
+| `patch` | Patch version number. |
+| `build` | Build metadata, or an empty string when it is absent. |
 
-### From Git tag (default)
+## Usage
 
-```yaml
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+Replace `<version>` with a released version of this action.
 
-      - name: Parse Tag
-        uses: yukiakai212/publish-tag@v1
-        id: tag
-        with:
-          prefix: "v"
-
-      - name: Publish to NPM
-        run: npm publish --tag ${{ steps.tag.outputs.tag }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-```
-
-### From a specific package.json (e.g. monorepo or Changesets flow)
+### Resolve a raw version
 
 ```yaml
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+- id: metadata
+  uses: yukiakai212/resolve-release-metadata@<version>
+  with:
+    raw-version: v1.2.3-beta.1+build.7
+    prefix-to-remove: v
 
-      - name: Parse Version from package.json
-        uses: yukiakai212/publish-tag@v1
-        id: tag
-        with:
-          source: "packages/core/package.json"
-
-      - name: Publish to NPM
-        run: npm publish --tag ${{ steps.tag.outputs.tag }}
-        working-directory: packages/core
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+- run: |
+    echo "version=${{ steps.metadata.outputs.version }}"
+    echo "full=${{ steps.metadata.outputs.full }}"
+    echo "release-tag=${{ steps.metadata.outputs.release-tag }}"
 ```
 
----
+### Resolve a Node.js package version
 
-## Examples
+This reads the `version` field from `package.json` in the repository root.
 
-| Git Tag            | tag      | version      | major | minor | patch | build | Full               |
-| ------------------ | -------- | ------------ | ----- | ----- | ----- | ----- | ------------------ |
-| `v1.2.3`           | latest   | 1.2.3        | 1     | 2     | 3     |       | `1.2.3`            |
-| `v2.0.0-beta.1`    | beta     | 2.0.0-beta.1 | 2     | 0     | 0     |       | `2.0.0-beta.1`     |
-| `release-1.3.0`    | latest   | 1.3.0        | 1     | 3     | 0     |       | `1.3.0`            |
-| `rel/1.0.0-rc.2`   | rc       | 1.0.0-rc.2   | 1     | 0     | 0     |       | `1.0.0-rc.2`       |
-| `rel/1.0.0-rc.2`   | rc       | 1.0.0-rc.2   | 1     | 0     | 0     |       | `1.0.0-rc.2`       |
-| `v1.0.0-beta+10.1` | beta     | 1.0.0-beta   | 1     | 0     | 0     | 10.1  | `1.0.0-beta+10.1`  |
+```yaml
+steps:
+  - uses: actions/checkout@v7
 
----
+  - id: metadata
+    uses: yukiakai212/resolve-release-metadata@<version>
+    with:
+      package-type: node
+```
+
+### Resolve a Cargo package version
+
+This reads `[package].version` from `crates/cli/Cargo.toml`.
+
+```yaml
+steps:
+  - uses: actions/checkout@v7
+
+  - id: metadata
+    uses: yukiakai212/resolve-release-metadata@<version>
+    with:
+      package-type: cargo
+      package-directory: crates/cli
+```
+
+## Resolution rules
+
+1. If `raw-version` is non-empty, the action uses it and ignores the package inputs.
+2. Otherwise, it reads the selected package manifest:
+   - `node`: `<package-directory>/package.json`
+   - `cargo`: `<package-directory>/Cargo.toml`
+3. If `prefix-to-remove` is set, the action removes that exact prefix once. A missing prefix is an error.
+4. The resulting value is parsed as a semantic version and exposed through the outputs above.
 
 ## License
 
-MIT License © 2025 [Yuki](https://github.com/yukiakai212)
-
-
-[codecov-image]: https://codecov.io/gh/yukiakai212/publish-tag/branch/main/graph/badge.svg
-[codecov-url]: https://codecov.io/gh/yukiakai212/publish-tag
-[github-build-url]: https://github.com/yukiakai212/publish-tag/actions/workflows/build.yml/badge.svg
-[github-repo-url]: https://github.com/yukiakai212/publish-tag/
+MIT
