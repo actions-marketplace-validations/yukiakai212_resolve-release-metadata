@@ -1,0 +1,46 @@
+name: 'Resolve Release Metadata'
+description: 'Resolve release metadata from a semantic version supplied directly or read from a supported package manifest.'
+author: 'Yuki'
+
+inputs:
+  raw-version:
+    description: 'Version text to parse directly. When non-empty, it takes precedence over package-type and package-
+      directory. Whitespace is not trimmed.'
+    required: false
+
+  package-type:
+    description: 'Package manifest type to inspect when raw-version is blank. Supported values: node, cargo.'
+    required: false
+
+  package-directory:
+    description: 'Directory containing the selected package manifest. Used only when raw-version is blank.'
+    required: false
+    default: '.'
+
+  prefix-to-remove:
+    description: 'Exact literal prefix required at the start of the resolved version and removed once. For example:
+      "v". Whitespace is not trimmed.'
+    required: false
+
+outputs:
+  release-tag:
+    description: 'Git release tag derived from the semantic version.'
+  full:
+    description: 'Full semantic version, including build metadata when present.'
+  version:
+    description: 'Semantic version without build metadata (for example: 1.2.3-beta.1).'
+  major:
+    description: 'Major version number.'
+  minor:
+    description: 'Minor version number.'
+  patch:
+    description: 'Patch version number.'
+  build:
+    description: 'Build metadata, or an empty string when absent.'
+
+runs:
+  using: node24
+  main: ./dist/action.cjs
+branding:
+  icon: 'tag'
+  color: 'green'
