@@ -1,12 +1,12 @@
 {
   "name": "resolve-release-metadata",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A GitHub Action that resolves release metadata from either a raw version string or a supported package manifest.",
   "type": "module",
   "scripts": {
     "test": "echo npx vitest run --reporter verbose --coverage",
-    "format": "prettier --write **/*.{js,ts,json}",
-    "format:check": "prettier --check **/*.{js,ts,json}",
+    "format": "prettier --write **/*.{ts,json,yml}",
+    "format:check": "prettier --check **/*.{ts,json,yml}",
     "lint": "eslint src/**/*.ts",
     "typecheck:workspace": "tsc -p tsconfig.workspace.json",
     "build": "npx tsup",
@@ -42,7 +42,7 @@
     "@types/node": "^24.0.10",
     "@types/semver": "^7.8.0",
     "@vitest/coverage-v8": "^4.0.15",
-    "@yukiakai/artifact": "^1.0.1",
+    "@yukiakai/artifact": "^2.0.1",
     "dotenv": "^17.0.1",
     "eslint": "^9.30.0",
     "husky": "^9.1.7",
@@ -58,6 +58,7 @@
   },
   "dependencies": {
     "@actions/core": "^3.0.1",
+    "@yukiakai/path-extra": "^1.0.1",
     "semver": "^7.8.6",
     "smol-toml": "^1.9.1",
     "zod": "^4.6.7"

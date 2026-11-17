@@ -4,7 +4,8 @@ author: 'Yuki'
 
 inputs:
   raw-version:
-    description: 'Version text to parse directly. When non-empty, it takes precedence over package-type and package-
+    description:
+      'Version text to parse directly. When non-empty, it takes precedence over package-type and package-
       directory. Whitespace is not trimmed.'
     required: false
 
@@ -18,7 +19,8 @@ inputs:
     default: '.'
 
   prefix-to-remove:
-    description: 'Exact literal prefix required at the start of the resolved version and removed once. For example:
+    description:
+      'Exact literal prefix required at the start of the resolved version and removed once. For example:
       "v". Whitespace is not trimmed.'
     required: false
 
