@@ -91,4 +91,4 @@ steps:
 
 ## License
 
-MIT
+MIT Yuki Akai
